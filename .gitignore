@@ -1,0 +1,8 @@
+# Mozilla
+*.zip
+*.xpi
+*.ja
+*.jar
+
+# Resources
+resources/
