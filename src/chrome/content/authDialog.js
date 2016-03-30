@@ -21,7 +21,7 @@
 
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
-Cu.import("chrome://pydio-for-filelink/content/defs.js");
+Cu.import("chrome://pydio/content/defs.js");
 
 /**
  *  Called on dialog load.
@@ -32,7 +32,7 @@ function onLoad() {
     document.getElementById("captcha-image").setAttribute("src",
         window.arguments[0].inn.captchaURL);
 
-    if (window.arguments[0].inn.status != A4F_ACCOUNT_LOCKED) {
+    if (window.arguments[0].inn.status != PYDIO_ACCOUNT_LOCKED) {
         document.getElementById("captcha-image-row").style.display = "none";
         document.getElementById("captcha-code-row").style.display = "none";
     }

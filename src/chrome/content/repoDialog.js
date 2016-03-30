@@ -21,7 +21,7 @@
  
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
-Cu.import("chrome://pydio-for-filelink/content/defs.js");
+Cu.import("chrome://pydio/content/defs.js");
 
 /**
  *  Called on dialog load.

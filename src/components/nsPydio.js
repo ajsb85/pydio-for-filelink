@@ -22,17 +22,17 @@
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+//Cu.import("resource:///modules/oauth.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource://gre/modules/Log.jsm");
 Cu.import("resource:///modules/cloudFileAccounts.js");
-Cu.import("chrome://pydio-for-filelink/content/defs.js");
-
+Cu.import("chrome://pydio/content/defs.js");
 
 /////////////////////////
 // nsPydio Object //
 /////////////////////////
 function nsPydio() {
-    this.log = Log4Moz.getConfiguredLogger("Pydio4Filelink");
+    this.log = Log.repository.getLogger("Pydio");
 }
 
 nsPydio.prototype = {
@@ -40,16 +40,17 @@ nsPydio.prototype = {
     // nsISupports
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgCloudFileProvider]),
 
-    classID: Components.ID("{0a2c6470-5822-11e2-bcfd-0800200c9a66}"),
+    classID: Components.ID("{b6fc8ddf-25b9-4bda-a8a7-37a4ae0fb66b}"),
 
+    //() => { statements }
     get type() "Pydio",
     get displayName() this._displayName,
     get serviceURL() this._baseURL,
-    get iconClass() A4F_URL_ICON,
+    get iconClass() PYDIO_URL_ICON,
     get accountKey() this._accountKey,
     get lastError() this._lastErrorText,
-    get settingsURL() A4F_URL_SETTINGS,
-    get managementURL() A4F_URL_MANAGEMENT,
+    get settingsURL() PYDIO_URL_SETTINGS,
+    get managementURL() PYDIO_URL_MANAGEMENT,
     get fileUploadSizeLimit() this._uploadMaxFileSize,
     get remainingFileSpace() this._totalStorage - this._fileSpaceUsed,
     get fileSpaceUsed() this._fileSpaceUsed,
@@ -63,7 +64,7 @@ nsPydio.prototype = {
     _password: "",
     _secureToken: "",
     _loginSeed: "",
-    _loginStatus: A4F_LOG_OK,
+    _loginStatus: PYDIO_LOG_OK,
     _loginRetry: 0,
     _repositoryId: -1,
 
@@ -196,7 +197,7 @@ nsPydio.prototype = {
      *
      * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
      */
-    uploadFile: function nsA4F_uploadFile(aFile, aCallback) {
+    uploadFile: function nsPydio_uploadFile(aFile, aCallback) {
         if (Services.io.offline) {
             throw Ci.nsIMsgCloudFileProvider.offlineErr;
         }
@@ -283,7 +284,7 @@ nsPydio.prototype = {
      *
      * @param aFile  The previously uploaded file to get the URL for.
      */
-    urlForFile: function nsA4F_urlForFile(aFile) {
+    urlForFile: function nsPydio_urlForFile(aFile) {
         var i = 0;
         while (i < this._uploads.length
                 && !this._uploads[i].file.equals(aFile)) {
@@ -303,7 +304,7 @@ nsPydio.prototype = {
      *
      * @param aFile  The nsIFile that is currently being uploaded to cancel.
      */
-    cancelFileUpload: function nsA4F_cancelFileUpload(aFile) {
+    cancelFileUpload: function nsPydio_cancelFileUpload(aFile) {
         var i = 0;
         while (i < this._uploads.length &&
                 !this._uploads[i].file.equals(aFile)) {
@@ -328,7 +329,7 @@ nsPydio.prototype = {
      * @param aCallback  The nsIRequestObserver for monitoring the start and
      *                   stop states of the delete operation.
      */
-    deleteFile: function nsA4F_deleteFile(aFile, aCallback) {
+    deleteFile: function nsPydio_deleteFile(aFile, aCallback) {
         if (Services.io.offline) {
             throw Ci.nsIMsgCloudFileProvider.offlineErr;
         }
@@ -371,7 +372,7 @@ nsPydio.prototype = {
                                 this._uploads.splice(i, 1);
                             }.bind(this);
 
-                            this.switchRepository(A4F_SHARED_FILES_REPOSITORY,
+                            this.switchRepository(PYDIO_SHARED_FILES_REPOSITORY,
                                 successCb, failureCb);
                         }.bind(this);
 
@@ -396,7 +397,7 @@ nsPydio.prototype = {
      *
      * @param aError an error to get the URL for.
      */
-    providerUrlForError: function nsA4F_providerUrlForError(aError) {
+    providerUrlForError: function nsPydio_providerUrlForError(aError) {
         return "";
     },
 
@@ -407,7 +408,7 @@ nsPydio.prototype = {
      *                         successfully.
      * @param failureCallback  Called back on error.
      */
-    getAuth: function nsA4F_getAuth(successCallback, failureCallback) {
+    getAuth: function nsPydio_getAuth(successCallback, failureCallback) {
         let successCb = function() {
             this._getLoginSeed(successCallback, failureCallback);
         }.bind(this);
@@ -422,10 +423,10 @@ nsPydio.prototype = {
      *                         successfully.
      * @param failureCallback  Called back on error.
      */
-    isLogged: function nsA4F_isLogged(successCallback, failureCallback) {
+    isLogged: function nsPydio_isLogged(successCallback, failureCallback) {
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&get_action=" + A4F_ACTION_LS
+            + "&get_action=" + PYDIO_ACTION_LS
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -466,7 +467,7 @@ nsPydio.prototype = {
      * @param successCallback  Called if login is successful.
      * @param failureCallback  Called back on error.
      */
-    login: function nsA4F_login(successCallback, failureCallback) {
+    login: function nsPydio_login(successCallback, failureCallback) {
         let successCb = function() {
             let successCb = function() {
                 if (!this._isLogged) {
@@ -490,7 +491,7 @@ nsPydio.prototype = {
      * @param toMD5  Input string.
      * @return       Value MD5 in hexadecimal.
      */
-    md5: function nsA4F_md5(toMD5) {
+    md5: function nsPydio_md5(toMD5) {
         var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
                 .createInstance(Ci.nsIScriptableUnicodeConverter);
         converter.charset = "UTF-8";
@@ -513,8 +514,7 @@ nsPydio.prototype = {
         }
 
         // convert the binary hash data to a hex string.
-        var s = [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
-
+        var s = Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join("");
         return s;
     },
 
@@ -525,7 +525,7 @@ nsPydio.prototype = {
      * @return  Index of next upload that can be started or -1 if there isn't
      *          any upload..
      */
-    nextUpload: function nsA4F_nextUpload() {
+    nextUpload: function nsPydio_nextUpload() {
         var i = 0;
         while (i < this._uploads.length
                 && !(this._uploads[i].state == READY)) {
@@ -542,7 +542,7 @@ nsPydio.prototype = {
     /**
      * Starts the next file upload in the uploads queue.
      */
-    resumeUpload: function nsA4F_resumeUpload() {
+    resumeUpload: function nsPydio_resumeUpload() {
         if (Services.io.offline) {
             throw Ci.nsIMsgCloudFileProvider.offlineErr;
         }
@@ -589,11 +589,11 @@ nsPydio.prototype = {
      * @param successCallback  Called if the repository changed successfully.
      * @param failureCallback  Called back on error.
      */
-    switchRepository: function nsA4F_switchRepository(repositoryId,
+    switchRepository: function nsPydio_switchRepository(repositoryId,
             successCallback, failureCallback) {
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&get_action=" + A4F_ACTION_SWITCH_REPOSITORY
+            + "&get_action=" + PYDIO_ACTION_SWITCH_REPOSITORY
             + "&repository_id=" + repositoryId;
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
@@ -621,13 +621,13 @@ nsPydio.prototype = {
      * @param successCallback  Called if checkup is successful.
      * @param failureCallback  Called back on error.
      */
-    uploadFolderExists: function nsA4F_uploadFolderExists(
+    uploadFolderExists: function nsPydio_uploadFolderExists(
             successCallback, failureCallback) {
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&action=" + A4F_ACTION_LS
+            + "&action=" + PYDIO_ACTION_LS
             + "&options=al"
-            + "&dir=" + encodeURIComponent(A4F_ROOT_DIR);
+            + "&dir=" + encodeURIComponent(PYDIO_ROOT_DIR);
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -644,7 +644,7 @@ nsPydio.prototype = {
 
             var i = 0;
             while (i < items.length
-                    && items[i].getAttribute("text") != A4F_UPLOAD_DIR_NAME) {
+                    && items[i].getAttribute("text") != PYDIO_UPLOAD_DIR_NAME) {
                 i++;
             }
 
@@ -667,7 +667,7 @@ nsPydio.prototype = {
      * @param array  Array with duplicated values
      * @return       Array without duplicates
      */
-    _clearArray: function nsA4F__clearArray(array) {
+    _clearArray: function nsPydio__clearArray(array) {
         var results = [];
 
         for (var i = 0; i < array.length - 1; i++) {
@@ -690,13 +690,13 @@ nsPydio.prototype = {
      * Creates a new folder in the Pydio account where the files will be
      * uploaded.
      */
-    _createUploadFolder: function nsA4F__createUploadFolder(
+    _createUploadFolder: function nsPydio__createUploadFolder(
             successCallback, failureCallback) {
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&get_action=" + A4F_ACTION_MKDIR
-            + "&dirname=" + encodeURIComponent(A4F_UPLOAD_DIR_NAME)
-            + "&dir=" + encodeURIComponent(A4F_ROOT_DIR);
+            + "&get_action=" + PYDIO_ACTION_MKDIR
+            + "&dirname=" + encodeURIComponent(PYDIO_UPLOAD_DIR_NAME)
+            + "&dir=" + encodeURIComponent(PYDIO_ROOT_DIR);
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -723,10 +723,10 @@ nsPydio.prototype = {
      * @param dir  Directory to examine
      * @return     Information in XML format
      */
-    _getDirInfo: function nsA4F__getDirInfo(dir) {
+    _getDirInfo: function nsPydio__getDirInfo(dir) {
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&action=" + A4F_ACTION_LS
+            + "&action=" + PYDIO_ACTION_LS
             + "&options=al"
             + "&dir=" + dir;
 
@@ -754,11 +754,11 @@ nsPydio.prototype = {
      *                         successfully.
      * @param failureCallback  Called back on error.
      */
-    _getLoginSeed: function nsA4F__getLoginSeed(successCallback,
+    _getLoginSeed: function nsPydio__getLoginSeed(successCallback,
             failureCallback) {
         let url = this._baseURL
                 + "index.php?secure_token=" + this._secureToken
-                + "&get_action=" + A4F_ACTION_GET_LOGIN_SEED;
+                + "&get_action=" + PYDIO_ACTION_GET_LOGIN_SEED;
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -804,10 +804,10 @@ nsPydio.prototype = {
      *                         successfully.
      * @param failureCallback  Called back on error.
      */
-    _getSecureToken: function nsA4F__getSecureToken(successCallback,
+    _getSecureToken: function nsPydio__getSecureToken(successCallback,
             failureCallback) {
         let url = this._baseURL
-            + "index.php?get_action=" + A4F_ACTION_GET_SECURE_TOKEN;
+            + "index.php?get_action=" + PYDIO_ACTION_GET_SECURE_TOKEN;
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -836,7 +836,7 @@ nsPydio.prototype = {
      * Tries to find a updated password in the thunderbird login manager for the
      * current user.
      */
-    _getUpdatedPassword: function nsA4F__getUpdatePassword() {
+    _getUpdatedPassword: function nsPydio__getUpdatePassword() {
         var loginManager = Cc["@mozilla.org/login-manager;1"]
                .getService(Ci.nsILoginManager);
 
@@ -859,11 +859,11 @@ nsPydio.prototype = {
      * Gets the upload max filesize and the available repositories for the user
      * account.
      */
-    _getAccountInfo: function nsA4F__getUploadMaxFileSize(successCallback,
+    _getAccountInfo: function nsPydio__getUploadMaxFileSize(successCallback,
             failureCallback) {
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&action=" + A4F_ACTION_GET_XML_REGISTRY;
+            + "&action=" + PYDIO_ACTION_GET_XML_REGISTRY;
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
              .createInstance(Ci.nsIXMLHttpRequest);
@@ -882,7 +882,7 @@ nsPydio.prototype = {
 
             var i = 0;
             while (i < properties.length && properties[i].getAttribute("name")
-                    != A4F_UPLOAD_MAX_SIZE) {
+                    != PYDIO_UPLOAD_MAX_SIZE) {
                 i++;
             }
 
@@ -923,14 +923,14 @@ nsPydio.prototype = {
      *                         successfully.
      * @param failureCallback  Called back on error.
      */
-    _getUserInfo: function nsA4F__getUserInfo(successCallback,
+    _getUserInfo: function nsPydio__getUserInfo(successCallback,
             failureCallback) {
         this._fileSpaceUsed = 0;
         let url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&action=" + A4F_ACTION_LS
+            + "&action=" + PYDIO_ACTION_LS
             + "&options=al"
-            + "&dir=" + encodeURIComponent(A4F_UPLOAD_DIR);
+            + "&dir=" + encodeURIComponent(PYDIO_UPLOAD_DIR);
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
              .createInstance(Ci.nsIXMLHttpRequest);
@@ -966,7 +966,7 @@ nsPydio.prototype = {
      * @param successCallback  Called if login is successful.
      * @param failureCallback  Called back on error.
      */
-    _login: function nsA4F__login(successCallback, failureCallback) {
+    _login: function nsPydio__login(successCallback, failureCallback) {
         var pass = encodeURIComponent(this._password);
 
         if (this._loginSeed != "-1") {
@@ -975,7 +975,7 @@ nsPydio.prototype = {
 
         let url = this._baseURL +
             "index.php?secure_token=" + this._secureToken
-            + "&get_action=" + A4F_ACTION_LOGIN
+            + "&get_action=" + PYDIO_ACTION_LOGIN
             + "&userid=" + this._username
             + "&password=" + pass
             + "&login_seed=" + this._loginSeed;
@@ -1002,11 +1002,11 @@ nsPydio.prototype = {
             // Check logging_result
             if (loggingStatus != null && loggingStatus.length == 1) {
                 var loginResult = loggingStatus[0].getAttribute("value");
-                if (loginResult  == A4F_LOG_OK) {
+                if (loginResult  == PYDIO_LOG_OK) {
                     var secureToken = loggingStatus[0]
                             .getAttribute("secure_token");
 
-                    this._loginStatus = A4F_LOG_OK;
+                    this._loginStatus = PYDIO_LOG_OK;
                     this._secureToken = secureToken;
 
                     if (successCallback != null) {
@@ -1014,8 +1014,8 @@ nsPydio.prototype = {
                     }
 
                 } else {
-                    if (this._loginStatus == A4F_LOG_OK
-                            && loginResult == A4F_WRONG_USER) {
+                    if (this._loginStatus == PYDIO_LOG_OK
+                            && loginResult == PYDIO_WRONG_USER) {
                         this._loginStatus = loginResult;
                         this._getUpdatedPassword();
                     } else {
@@ -1023,7 +1023,7 @@ nsPydio.prototype = {
                         this._runAuthPrompt();
                     }
 
-                    if (this._loginStatus != A4F_ABORT_LOGIN) {
+                    if (this._loginStatus != PYDIO_ABORT_LOGIN) {
                         this._login(successCallback, failureCallback);
                     } else {
                         if (failureCallback != null) {
@@ -1047,7 +1047,7 @@ nsPydio.prototype = {
      * @param size  The filesize in string
      * @return      The filesize in bytes
      */
-    _parseSize: function nsA4F__parseSize(size) {
+    _parseSize: function nsPydio__parseSize(size) {
         if (size.indexOf(" ") != -1) {
             let n = size.substring(0, size.indexOf(" ")).replace(",", ".");
             let uds = size.substring(size.indexOf(" ") + 1);
@@ -1071,7 +1071,7 @@ nsPydio.prototype = {
      *
      * @param xml  Document XML with the directory information.
      */
-    _parseXmlDirInfo: function nsA4F__parseXmlDirInfo(xml) {
+    _parseXmlDirInfo: function nsPydio__parseXmlDirInfo(xml) {
         var dir= "";
 
         for (var i = 0; i < xml.childNodes[0].childNodes.length; i++) {
@@ -1104,10 +1104,10 @@ nsPydio.prototype = {
     /**
      * Shows a dialog with a captcha code to unlock the account.
      */
-    _runAuthPrompt: function nsA4F__runAuthPrompt() {
+    _runAuthPrompt: function nsPydio__runAuthPrompt() {
         var url = this._baseURL
             + "index.php?secure_token=" + this._secureToken
-            + "&get_action=" + A4F_ACTION_GET_CAPTCHA;
+            + "&get_action=" + PYDIO_ACTION_GET_CAPTCHA;
 
         var windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
                 .getService(Ci.nsIWindowMediator);
@@ -1123,13 +1123,13 @@ nsPydio.prototype = {
         };
 
         window.openDialog(
-            "chrome://pydio-for-filelink/content/authDialog.xhtml",
+            "chrome://pydio/content/authDialog.xhtml",
             "",
             "chrome, dialog, modal, resizable=yes",
             params).focus();
 
         if (params.out == null) {
-            this._loginStatus = A4F_ABORT_LOGIN;
+            this._loginStatus = PYDIO_ABORT_LOGIN;
         } else {
             this._password = params.out.password;
             this._captchaCode = params.out.captchaCode;
@@ -1144,7 +1144,7 @@ nsPydio.prototype = {
      *
      * @param repositories  Custom array with all available repositories.
      */
-    _runSelectRepositoryPrompt: function nsA4F__runAuthPrompt(repositories) {
+    _runSelectRepositoryPrompt: function nsPydio__runAuthPrompt(repositories) {
         var windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
                 .getService(Ci.nsIWindowMediator);
         var window = windowMediator.getMostRecentWindow(null);
@@ -1157,7 +1157,7 @@ nsPydio.prototype = {
         };
 
         window.openDialog(
-            "chrome://pydio-for-filelink/content/repoDialog.xhtml",
+            "chrome://pydio/content/repoDialog.xhtml",
             "",
             "chrome, dialog, modal, resizable=yes",
             params).focus();
@@ -1174,7 +1174,7 @@ nsPydio.prototype = {
     /**
      * Saves a new password for the current user using the Login Manager.
      */
-    _saveNewPassword: function nsA4F__saveNewPassword() {
+    _saveNewPassword: function nsPydio__saveNewPassword() {
         var loginManager = Cc["@mozilla.org/login-manager;1"]
                .getService(Ci.nsILoginManager);
 
@@ -1269,9 +1269,9 @@ nsAXPUploader.prototype = {
             failureCallback) {
         let url = this.baseURL
             + "index.php?secure_token=" + secureToken
-            + "&get_action=" + A4F_ACTION_DELETE
-            + "&dir=" + encodeURIComponent(A4F_DELETE_DIR)
-            + "&file=" + encodeURIComponent(A4F_UPLOAD_DIR + this.fileName);
+            + "&get_action=" + PYDIO_ACTION_DELETE
+            + "&dir=" + encodeURIComponent(PYDIO_DELETE_DIR)
+            + "&file=" + encodeURIComponent(PYDIO_UPLOAD_DIR + this.fileName);
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -1304,9 +1304,9 @@ nsAXPUploader.prototype = {
             successCallback, failureCallback) {
         let url = this.baseURL
             + "index.php?secure_token=" + secureToken
-            + "&get_action=" + A4F_ACTION_DELETE
+            + "&get_action=" + PYDIO_ACTION_DELETE
             + "&ajxp_mime=shared_file"
-            + "&dir=" + encodeURIComponent(A4F_SHARED_FILES_DIR)
+            + "&dir=" + encodeURIComponent(PYDIO_SHARED_FILES_DIR)
             + "&file=" + encodeURIComponent(this.sharedFile);
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
@@ -1343,7 +1343,7 @@ nsAXPUploader.prototype = {
             failureCallback) {
         let url = this.baseURL
             + "index.php?secure_token=" + secureToken
-            + "&get_action=" + A4F_ACTION_NEXT_TO_REMOTE;
+            + "&get_action=" + PYDIO_ACTION_NEXT_TO_REMOTE;
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -1358,7 +1358,7 @@ nsAXPUploader.prototype = {
         req.onload = function() {
             let url = this.baseURL
             + "index.php?secure_token=" + secureToken
-            + "&get_action=" + A4F_ACTION_TRIGGER_REMOTE_COPY;
+            + "&get_action=" + PYDIO_ACTION_TRIGGER_REMOTE_COPY;
 
             let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                     .createInstance(Ci.nsIXMLHttpRequest);
@@ -1401,9 +1401,9 @@ nsAXPUploader.prototype = {
         this.state = UPLOADING;
         let url = this.baseURL
             + "index.php?secure_token=" + secureToken
-            + "&get_action=" + A4F_ACTION_UPLOAD
+            + "&get_action=" + PYDIO_ACTION_UPLOAD
             + "&xhr_uploader=true"
-            + "&dir=" + encodeURIComponent(A4F_UPLOAD_DIR);
+            + "&dir=" + encodeURIComponent(PYDIO_UPLOAD_DIR);
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
             .createInstance(Ci.nsIXMLHttpRequest);
@@ -1442,15 +1442,15 @@ nsAXPUploader.prototype = {
             failureCallback) {
         let url = this.baseURL
             + "index.php?secure_token=" + secureToken
-            + "&get_action=" + A4F_ACTION_SHARE
-            + "&dir=" + encodeURIComponent(A4F_UPLOAD_DIR)
-            + "&file=" + encodeURIComponent(A4F_UPLOAD_DIR + this.fileName)
+            + "&get_action=" + PYDIO_ACTION_SHARE
+            + "&dir=" + encodeURIComponent(PYDIO_UPLOAD_DIR)
+            + "&file=" + encodeURIComponent(PYDIO_UPLOAD_DIR + this.fileName)
             + "&sub_action=create_minisite"
             + "&simple_right_download=on"
             + "&create_guest_user=true"
             + "&simple_right_read=on";
-            //~ + "&expiration=" + A4F_EXPIRATION
-            //~ + "&downloadlimit=" + A4F_DOWNLOAD_LIMIT;
+            //~ + "&expiration=" + PYDIO_EXPIRATION
+            //~ + "&downloadlimit=" + PYDIO_DOWNLOAD_LIMIT;
 
         let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
@@ -1546,8 +1546,8 @@ nsAXPUploader.prototype = {
         while (sstream.available() > 0) {
             let chunkSize = sstream.available();
 
-            if (chunkSize > A4F_MAX_UPLOAD_CHUNK) {
-                chunkSize = A4F_MAX_UPLOAD_CHUNK;
+            if (chunkSize > PYDIO_MAX_UPLOAD_CHUNK) {
+                chunkSize = PYDIO_MAX_UPLOAD_CHUNK;
             }
 
             let bytes = sstream.readBytes(chunkSize);

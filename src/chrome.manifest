@@ -1,12 +1,12 @@
-content    pydio-for-filelink       chrome/content/
-skin       pydio-for-filelink       classic/1.0 chrome/skin/
-locale     pydio-for-filelink en-GB chrome/locale/en-GB/
-locale     pydio-for-filelink en-US chrome/locale/en-US/
-locale     pydio-for-filelink es-AR chrome/locale/es-AR/
-locale     pydio-for-filelink es-ES chrome/locale/es-ES/
-locale     pydio-for-filelink gl-ES chrome/locale/gl-ES/
-locale     pydio-for-filelink fr-FR chrome/locale/fr-FR/
+content    pydio       chrome/content/
+skin       pydio       classic/1.0 chrome/skin/
+locale     pydio en-GB chrome/locale/en-GB/
+locale     pydio en-US chrome/locale/en-US/
+locale     pydio es-AR chrome/locale/es-AR/
+locale     pydio es-ES chrome/locale/es-ES/
+locale     pydio gl-ES chrome/locale/gl-ES/
+locale     pydio fr-FR chrome/locale/fr-FR/
 
-component {0a2c6470-5822-11e2-bcfd-0800200c9a66} nsPydio.js
-contract @mozilla.org/mail/pydio-for-filelink;1 {0a2c6470-5822-11e2-bcfd-0800200c9a66}
-category cloud-files Pydio4Filelink @mozilla.org/mail/pydio-for-filelink;1
+component {0a2c6470-5822-11e2-bcfd-0800200c9a66} components/nsPydio.js
+contract @mozilla.org/mail/pydio;1 {0a2c6470-5822-11e2-bcfd-0800200c9a66}
+category cloud-files Pydio @mozilla.org/mail/pydio;1
